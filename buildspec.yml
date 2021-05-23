@@ -1,0 +1,52 @@
+version: 0.2
+env:
+  variables:
+    JAVA_HOME: "/usr/lib/jvm/java-8-openjdk-amd64"
+    DATABASE_USERNAME: "root"
+    DATABASE_PASSWORD: ""
+    DATABASE_DIALECT: "org.hibernate.dialect.MySQL5Dialect"
+
+phases:
+  install:
+    runtime-versions:
+        java: openjdk8  
+    commands:
+
+
+      - export DEFAULT_HOST_ADDRESS=127.0.0.1 
+      - export DEFAULT_HOST_PORT=27017 
+      - export DATABASE_USERNAME=root 
+      - export DATABASE_PASSWORD=letmein2 
+      - export DATABASE_DIALECT=org.hibernate.dialect.MySQL8Dialect 
+      - export DATABASE_DRIVER=com.mysql.cj.jdbc.Driver 
+      - export DATABASE_URL=jdbc:mysql://localhost:3306/struts-demo?createDatabaseIfNotExist=true 
+    finally:
+      - echo Install phase complete...
+  build:
+    commands:
+      - mvn package 
+  post_build:
+    commands:
+      - echo Building Docker Image...
+      - cd ${CODEBUILD_SRC_DIR}
+      - docker login --username tylertravismya --password 69cutlass
+      - docker build -t theharbormaster/struts-demo:latest .
+      - docker push theharbormaster/struts-demo:latest 
+
+      - echo Installing Terraform...
+      - wget https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip
+      - unzip ./terraform_0.11.13_linux_amd64.zip -d /usr/local/bin/
+      - terraform -v
+      - echo Running Terraform plan...
+      - cd terraform
+      - terraform init --input=false 
+      - terraform plan --input=false --out=terraform.plan -var host=https://xxx.xxx.xxx.xxx -var username= -var password= -var region=- -var project= .
+      - terraform apply -auto-approve "terraform.plan"
+
+artifacts:
+  files:
+    - target/*jar
+  discard-paths: yes
+  cache:
+    paths:
+      - '/root/.m2/**/*'

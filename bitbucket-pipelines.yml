@@ -1,0 +1,31 @@
+
+image: maven:3.3.9
+
+pipelines:
+  default:
+  - step:
+      name: install dependencies and building struts-demo 
+      script:
+
+        - export DEFAULT_HOST_ADDRESS=127.0.0.1
+        - export DEFAULT_HOST_PORT=27017
+        - export DATABASE_USERNAME=root
+        - export DATABASE_PASSWORD=letmein2
+        - export DATABASE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+        - export DATABASE_DRIVER=com.mysql.cj.jdbc.Driver
+        - export DATABASE_URL=jdbc:mysql://localhost:3306/struts-demo?createDatabaseIfNotExist=true
+        - mvn package
+
+      caches:
+          - maven
+      services:
+          - mysql
+
+definitions:
+  services:
+    mysql:
+      image: mysql:5.7
+      variables: # for mysql
+        MYSQL_USER: 'root'
+        MYSQL_ROOT_PASSWORD: 'letmein2'
+

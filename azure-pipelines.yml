@@ -1,0 +1,20 @@
+pool:
+  vmImage: 'ubuntu-16.04'
+variables: # pipeline-level
+  DATABASE_USERNAME: 'root'
+  DATABASE_PASSWORD: 'letmein2'
+  DATABASE_DIALECT: 'org.hibernate.dialect.MySQL8Dialect'
+  DATABASE_DRIVER: 'com.mysql.cj.jdbc.Driver'
+  DATABASE_URL: 'jdbc:mysql://127.0.0.1:3306/azuretest?createDatabaseIfNotExist=true'
+steps:
+- script: docker run -d --name=rm-test-mysql -e MYSQL_ROOT_PASSWORD=letmein2 mysql
+  displayName: 'installing latest mysql docker image'
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: ''
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: yes
+    testResultsFiles: '**/TEST-*.xml'
+    goals: 'package'

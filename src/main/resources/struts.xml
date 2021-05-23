@@ -1,0 +1,980 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+    "http://struts.apache.org/dtds/struts-2.5.dtd">
+
+<struts>
+
+	<include file="struts-default.xml"></include>
+	
+<!-- =============== Constants ==================== -->
+
+    <!-- Some or all of these can be flipped to true for debugging -->
+    <constant name="struts.i18n.reload" value="true" />
+    <constant name="struts.devMode" value="true" />
+    <constant name="struts.custom.i18n.resources" value="globalMessages" />
+    <constant name="struts.configuration.xml.reload" value="true" />
+    <constant name="struts.serve.static" value="true" />
+    <constant name="struts.serve.static.browserCache" value="false" />   
+    <constant name="struts.codebehind.defaultPackage" value="action" /> 	
+    <constant name="struts.convention.default.parent.package" value="json-default"/>
+
+<!-- =============== Global Results ==================== -->
+
+<!-- =============== Default Package ==================== -->
+
+    <package name="default" extends="struts-default, json-default" namespace="/" >
+       <interceptors>
+          <interceptor-stack name="interceptorStack">          
+            <interceptor-ref name="exception"/>
+                <interceptor-ref name="alias"/>
+                <interceptor-ref name="servletConfig"/>
+                <interceptor-ref name="prepare"/>
+                <interceptor-ref name="i18n"/>                
+                <interceptor-ref name="chain"/>
+                <interceptor-ref name="debugging"/>
+                <interceptor-ref name="checkbox"/>
+            	<interceptor-ref name="params" >
+            		<param name="excludeParams">rm\..*,dojo\..*</param>
+				</interceptor-ref>
+                <interceptor-ref name="conversionError"/>
+          </interceptor-stack>
+
+            <interceptor-stack name="myParamsPrepareParamsStack">
+                <interceptor-ref name="exception"/>
+                <interceptor-ref name="alias"/>
+                <interceptor-ref name="debugging"/>
+                <interceptor-ref name="checkbox"/>
+            	<interceptor-ref name="params" >
+            		<param name="excludeParams">rm\..*,dojo\..*</param>
+	            </interceptor-ref>
+                <interceptor-ref name="servletConfig"/>
+				<interceptor-ref name="i18n"/>                
+                <interceptor-ref name="prepare"/>
+                <interceptor-ref name="chain"/>
+                <interceptor-ref name="checkbox"/>
+            	<interceptor-ref name="params" >
+            		<param name="excludeParams">rm\..*,dojo\..*</param>
+	            </interceptor-ref>
+                <interceptor-ref name="conversionError"/>
+            </interceptor-stack>
+        </interceptors>
+
+        <default-interceptor-ref name="interceptorStack"/>          
+
+		<global-results>
+		  <result name="authentication_error">/jsp/AuthenticationError.jsp</result>
+		  <result name="authorization_error">/jsp/AuthorizationError.jsp</result>
+		  <result name="error">/jsp/error.jsp</result>
+		  <result name="general_error">/jsp/error.jsp</result>
+		  <result name="duplicate_name">/jsp/duplicate_name.jsp</result>	  
+		</global-results>
+        
+        <global-exception-mappings>
+            <exception-mapping exception="com.Harbormaster.framework.common.exception.AuthenticationException" result="authentication_error"/>
+            <exception-mapping exception="com.Harbormaster.framework.common.exception.AuthorizationException" result="authorization_error"/>
+            <exception-mapping exception="com.Harbormaster.framework.common.exception.DuplicateNameException" result="duplicate_name_error"/>
+        </global-exception-mappings>
+
+        <action name="">
+            <result name="success">/jsp/logon.jsp</result>
+        </action>
+
+        <action name="test" class="com.harbormaster.action.TestAction" method="noOp" >
+            <result name="success">/jsp/startTest.jsp</result>
+        </action>
+
+        <action name="runTest" class="com.harbormaster.action.TestAction" method="execute" >
+			<result name="success" type="json">
+		        <param name="noCache">true</param>
+		        <param name="excludeNullProperties">true</param>
+	    	    <param name="root">results</param>
+	    	</result>    
+        </action>
+
+        <action name="logon" class="com.harbormaster.action.LogonAction" method="execute" >
+            <result name="success">/jsp/homepage.jsp</result>
+            <result name="successUsingBackdoor">admin_homepage.jsp</result>
+            <result name="LOGON_FAILURE">/jsp/logon.jsp</result>
+        </action>
+
+        <action name="logoff" class="com.harbormaster.action.LogoffAction" method="execute">
+            <result>/jsp/logoff.jsp</result>
+            <result name="LOGOFF_FAILURE">logoff.jsp</result>
+        </action>
+
+        <action name="homepage" class="com.harbormaster.action.HomePageAction" method="homepage">
+            <result>/jsp/homepage.jsp</result>
+        </action> 
+    </package>	
+
+<!-- =============== Application Package ==================== -->
+
+<!-- AIB : #strutsActionDeclarationsOutput() -->
+
+
+
+  <package name="Player" extends="default" namespace="/Player">
+
+    <action class="com.harbormaster.action.PlayerAction" method="execute" name="json">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Game</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	
+    </action>
+    
+<!-- load a Player -->
+    <action class="com.harbormaster.action.PlayerAction" method="load" name="load">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Player</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+<!-- displays the a grid of all Player using JSON -->
+    <action class="com.harbormaster.action.PlayerAction" name="viewAll" method="loadAll">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action> 
+
+<!-- loads all Player from the datastore -->        
+    <action class="com.harbormaster.action.PlayerAction" method="loadAll" name="loadAll">
+        <result name="success">/jsp/PlayerViewAllList.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action>
+    
+<!-- display the main tab panel for a Player instance. 
+     includes the profile form, all single non-composite associations
+	 and all multiple associations 
+-->
+    <action class="com.harbormaster.action.PlayerAction" name="showTab" method="load">
+    	<result name="success">/jsp/PlayerMainTab.jsp</result>    	   
+    	<param name="playerId">${#parameters['playerId'][0]}</param>   
+    	<param name="${selectedTab}">${#parameters['${selectedTab}'][0]}</param>
+    	            
+    </action> 
+            
+    <action class="com.harbormaster.action.PlayerAction" name="executeGridAction" method="executeGridAction">
+	    <result name="success">/jsp/PlayerViewAllList.jsp</result>
+	    <result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>	    
+    </action> 
+            
+            
+            
+<!-- load the Player and the supplied associated by the role name provided
+     by default, the associated load{roleName}() method loads all the contents of a Player
+-->	 
+
+<!-- save the supplied Player : does an update unless no primary key, then does a create -->
+    <action class="com.harbormaster.action.PlayerAction" method="save" name="save">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">player</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>        
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- create the supplied Player -->
+    <action class="com.harbormaster.action.PlayerAction" method="create" name="create">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- update the supplied Player -->
+    <action class="com.harbormaster.action.PlayerAction" method="update" name="update">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- delete a Player -->
+    <action class="com.harbormaster.action.PlayerAction" method="delete" name="delete">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+	
+	
+	
+<!-- load and display a list based on the provided rolename of a multi association -->    
+    <action class="com.harbormaster.action.PlayerAction" name="list*" method="load">
+        <result name="success">/jsp/{1}List.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>    
+    
+ 
+
+ 
+ 
+  </package>
+
+
+
+  <package name="League" extends="default" namespace="/League">
+
+    <action class="com.harbormaster.action.LeagueAction" method="execute" name="json">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Game</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	
+    </action>
+    
+<!-- load a League -->
+    <action class="com.harbormaster.action.LeagueAction" method="load" name="load">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">League</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+<!-- displays the a grid of all League using JSON -->
+    <action class="com.harbormaster.action.LeagueAction" name="viewAll" method="loadAll">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action> 
+
+<!-- loads all League from the datastore -->        
+    <action class="com.harbormaster.action.LeagueAction" method="loadAll" name="loadAll">
+        <result name="success">/jsp/LeagueViewAllList.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action>
+    
+<!-- display the main tab panel for a League instance. 
+     includes the profile form, all single non-composite associations
+	 and all multiple associations 
+-->
+    <action class="com.harbormaster.action.LeagueAction" name="showTab" method="load">
+    	<result name="success">/jsp/LeagueMainTab.jsp</result>    	   
+    	<param name="leagueId">${#parameters['leagueId'][0]}</param>   
+    	<param name="${selectedTab}">${#parameters['${selectedTab}'][0]}</param>
+    	            
+    </action> 
+            
+    <action class="com.harbormaster.action.LeagueAction" name="executeGridAction" method="executeGridAction">
+	    <result name="success">/jsp/LeagueViewAllList.jsp</result>
+	    <result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>	    
+    </action> 
+            
+            
+            
+<!-- load the League and the supplied associated by the role name provided
+     by default, the associated load{roleName}() method loads all the contents of a League
+-->	 
+
+<!-- save the supplied League : does an update unless no primary key, then does a create -->
+    <action class="com.harbormaster.action.LeagueAction" method="save" name="save">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">league</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>        
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- create the supplied League -->
+    <action class="com.harbormaster.action.LeagueAction" method="create" name="create">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- update the supplied League -->
+    <action class="com.harbormaster.action.LeagueAction" method="update" name="update">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- delete a League -->
+    <action class="com.harbormaster.action.LeagueAction" method="delete" name="delete">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+	
+	
+	
+<!-- load and display a list based on the provided rolename of a multi association -->    
+    <action class="com.harbormaster.action.LeagueAction" name="list*" method="load">
+        <result name="success">/jsp/{1}List.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>    
+    
+
+
+	<action class="com.harbormaster.action.LeagueAction" name="savePlayers" method="savePlayers">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+		    <param name="root">paginatedList</param>
+    	</result>
+	</action>
+
+	<action class="com.harbormaster.action.LeagueAction" name="deletePlayers" method="deletePlayers">
+    	<result name="success"></result>
+	</action>
+
+    <action class="com.harbormaster.action.LeagueAction" name="loadPlayers" method="loadPlayers">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+ 
+
+ 
+ 
+  </package>
+
+
+
+  <package name="Tournament" extends="default" namespace="/Tournament">
+
+    <action class="com.harbormaster.action.TournamentAction" method="execute" name="json">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Game</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	
+    </action>
+    
+<!-- load a Tournament -->
+    <action class="com.harbormaster.action.TournamentAction" method="load" name="load">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Tournament</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+<!-- displays the a grid of all Tournament using JSON -->
+    <action class="com.harbormaster.action.TournamentAction" name="viewAll" method="loadAll">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action> 
+
+<!-- loads all Tournament from the datastore -->        
+    <action class="com.harbormaster.action.TournamentAction" method="loadAll" name="loadAll">
+        <result name="success">/jsp/TournamentViewAllList.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action>
+    
+<!-- display the main tab panel for a Tournament instance. 
+     includes the profile form, all single non-composite associations
+	 and all multiple associations 
+-->
+    <action class="com.harbormaster.action.TournamentAction" name="showTab" method="load">
+    	<result name="success">/jsp/TournamentMainTab.jsp</result>    	   
+    	<param name="tournamentId">${#parameters['tournamentId'][0]}</param>   
+    	<param name="${selectedTab}">${#parameters['${selectedTab}'][0]}</param>
+    	            
+    </action> 
+            
+    <action class="com.harbormaster.action.TournamentAction" name="executeGridAction" method="executeGridAction">
+	    <result name="success">/jsp/TournamentViewAllList.jsp</result>
+	    <result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>	    
+    </action> 
+            
+            
+            
+<!-- load the Tournament and the supplied associated by the role name provided
+     by default, the associated load{roleName}() method loads all the contents of a Tournament
+-->	 
+
+<!-- save the supplied Tournament : does an update unless no primary key, then does a create -->
+    <action class="com.harbormaster.action.TournamentAction" method="save" name="save">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">tournament</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>        
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- create the supplied Tournament -->
+    <action class="com.harbormaster.action.TournamentAction" method="create" name="create">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- update the supplied Tournament -->
+    <action class="com.harbormaster.action.TournamentAction" method="update" name="update">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- delete a Tournament -->
+    <action class="com.harbormaster.action.TournamentAction" method="delete" name="delete">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+	
+	
+	
+<!-- load and display a list based on the provided rolename of a multi association -->    
+    <action class="com.harbormaster.action.TournamentAction" name="list*" method="load">
+        <result name="success">/jsp/{1}List.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>    
+    
+
+
+	<action class="com.harbormaster.action.TournamentAction" name="saveMatchups" method="saveMatchups">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+		    <param name="root">paginatedList</param>
+    	</result>
+	</action>
+
+	<action class="com.harbormaster.action.TournamentAction" name="deleteMatchups" method="deleteMatchups">
+    	<result name="success"></result>
+	</action>
+
+    <action class="com.harbormaster.action.TournamentAction" name="loadMatchups" method="loadMatchups">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+ 
+
+ 
+ 
+  </package>
+
+
+
+  <package name="Matchup" extends="default" namespace="/Matchup">
+
+    <action class="com.harbormaster.action.MatchupAction" method="execute" name="json">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Game</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	
+    </action>
+    
+<!-- load a Matchup -->
+    <action class="com.harbormaster.action.MatchupAction" method="load" name="load">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Matchup</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+<!-- displays the a grid of all Matchup using JSON -->
+    <action class="com.harbormaster.action.MatchupAction" name="viewAll" method="loadAll">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action> 
+
+<!-- loads all Matchup from the datastore -->        
+    <action class="com.harbormaster.action.MatchupAction" method="loadAll" name="loadAll">
+        <result name="success">/jsp/MatchupViewAllList.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action>
+    
+<!-- display the main tab panel for a Matchup instance. 
+     includes the profile form, all single non-composite associations
+	 and all multiple associations 
+-->
+    <action class="com.harbormaster.action.MatchupAction" name="showTab" method="load">
+    	<result name="success">/jsp/MatchupMainTab.jsp</result>    	   
+    	<param name="matchupId">${#parameters['matchupId'][0]}</param>   
+    	<param name="${selectedTab}">${#parameters['${selectedTab}'][0]}</param>
+    	            
+    </action> 
+            
+    <action class="com.harbormaster.action.MatchupAction" name="executeGridAction" method="executeGridAction">
+	    <result name="success">/jsp/MatchupViewAllList.jsp</result>
+	    <result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>	    
+    </action> 
+            
+            
+            
+<!-- load the Matchup and the supplied associated by the role name provided
+     by default, the associated load{roleName}() method loads all the contents of a Matchup
+-->	 
+
+<!-- save the supplied Matchup : does an update unless no primary key, then does a create -->
+    <action class="com.harbormaster.action.MatchupAction" method="save" name="save">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">matchup</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>        
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- create the supplied Matchup -->
+    <action class="com.harbormaster.action.MatchupAction" method="create" name="create">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- update the supplied Matchup -->
+    <action class="com.harbormaster.action.MatchupAction" method="update" name="update">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- delete a Matchup -->
+    <action class="com.harbormaster.action.MatchupAction" method="delete" name="delete">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+	
+	
+	
+<!-- load and display a list based on the provided rolename of a multi association -->    
+    <action class="com.harbormaster.action.MatchupAction" name="list*" method="load">
+        <result name="success">/jsp/{1}List.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>    
+    
+
+
+	<action class="com.harbormaster.action.MatchupAction" name="saveGames" method="saveGames">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+		    <param name="root">paginatedList</param>
+    	</result>
+	</action>
+
+	<action class="com.harbormaster.action.MatchupAction" name="deleteGames" method="deleteGames">
+    	<result name="success"></result>
+	</action>
+
+    <action class="com.harbormaster.action.MatchupAction" name="loadGames" method="loadGames">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+ 
+
+ 
+ 
+  </package>
+
+
+
+  <package name="Game" extends="default" namespace="/Game">
+
+    <action class="com.harbormaster.action.GameAction" method="execute" name="json">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Game</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	
+    </action>
+    
+<!-- load a Game -->
+    <action class="com.harbormaster.action.GameAction" method="load" name="load">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">Game</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    	   
+    </action>
+
+<!-- displays the a grid of all Game using JSON -->
+    <action class="com.harbormaster.action.GameAction" name="viewAll" method="loadAll">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">paginatedList</param>
+    	</result>    
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action> 
+
+<!-- loads all Game from the datastore -->        
+    <action class="com.harbormaster.action.GameAction" method="loadAll" name="loadAll">
+        <result name="success">/jsp/GameViewAllList.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>
+    </action>
+    
+<!-- display the main tab panel for a Game instance. 
+     includes the profile form, all single non-composite associations
+	 and all multiple associations 
+-->
+    <action class="com.harbormaster.action.GameAction" name="showTab" method="load">
+    	<result name="success">/jsp/GameMainTab.jsp</result>    	   
+    	<param name="gameId">${#parameters['gameId'][0]}</param>   
+    	<param name="${selectedTab}">${#parameters['${selectedTab}'][0]}</param>
+    	            
+    </action> 
+            
+    <action class="com.harbormaster.action.GameAction" name="executeGridAction" method="executeGridAction">
+	    <result name="success">/jsp/GameViewAllList.jsp</result>
+	    <result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>	    
+    </action> 
+            
+            
+            
+<!-- load the Game and the supplied associated by the role name provided
+     by default, the associated load{roleName}() method loads all the contents of a Game
+-->	 
+
+<!-- save the supplied Game : does an update unless no primary key, then does a create -->
+    <action class="com.harbormaster.action.GameAction" method="save" name="save">
+    	<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">game</param>
+    	    <param name="ignoreHierarchy">false</param>
+    	</result>        
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- create the supplied Game -->
+    <action class="com.harbormaster.action.GameAction" method="create" name="create">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- update the supplied Game -->
+    <action class="com.harbormaster.action.GameAction" method="update" name="update">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+
+<!-- delete a Game -->
+    <action class="com.harbormaster.action.GameAction" method="delete" name="delete">
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>
+	
+	
+	
+<!-- load and display a list based on the provided rolename of a multi association -->    
+    <action class="com.harbormaster.action.GameAction" name="list*" method="load">
+        <result name="success">/jsp/{1}List.jsp</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>        
+    </action>    
+    
+ 
+
+
+
+	<action class="com.harbormaster.action.GameAction" name="saveMatchup" method="saveMatchup">
+    	<result name="success">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+		    <param name="root">game.matchup</param>
+    	</result>
+	</action>
+
+	<action class="com.harbormaster.action.GameAction" name="deleteMatchup" method="deleteMatchup">
+    	<result name="success"></result>
+	</action>
+
+    <action class="com.harbormaster.action.GameAction" name="loadMatchup" method="load">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">game.matchup</param>
+    	    <param name="ignoreHierarchy">false</param>    	    
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    </action>
+
+
+
+	<action class="com.harbormaster.action.GameAction" name="savePlayer" method="savePlayer">
+    	<result name="success">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+		    <param name="root">game.player</param>
+    	</result>
+	</action>
+
+	<action class="com.harbormaster.action.GameAction" name="deletePlayer" method="deletePlayer">
+    	<result name="success"></result>
+	</action>
+
+    <action class="com.harbormaster.action.GameAction" name="loadPlayer" method="load">
+		<result name="success" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">game.player</param>
+    	    <param name="ignoreHierarchy">false</param>    	    
+    	</result>
+    	<result name="error" type="json">
+	        <param name="noCache">true</param>
+	        <param name="excludeNullProperties">true</param>
+    	    <param name="root">statusMessage</param>
+    	</result>    
+    </action>
+
+ 
+ 
+  </package>
+
+ <!-- ~AIB -->
+                
+</struts>

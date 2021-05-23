@@ -1,0 +1,14 @@
+gitRepo:
+  gitProvider: git_test
+  path: complexmathguy/struts-demo
+  TestDBUrl: 
+  TestDBName: struts-demo_test_db
+  TestDBPassword: 
+  TestDBDialect: org.hibernate.dialect.MySQL8Dialect 
+  TestDBDriver: com.mysql.cj.jdbc.Driver
+  DockerUserName: tylertravismya
+  DockerPassword: 69cutlass
+  DockerOrgName: theharbormaster
+  DockerRepo: struts-demo
+  DockerHost: 
+  DockerTag: latest
