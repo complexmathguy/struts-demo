@@ -1,0 +1,31 @@
+FROM maven:3
+
+# update and install dos2unix
+RUN apt-get update --fix-missing && \
+apt-get install -y dos2unix
+
+# assign vars for Git
+RUN export EMAIL=dav@harbormaster.ai
+RUN export GIT_AUTHOR_NAME=Dev Team
+RUN export GIT_COMMITTER_NAME=Turnstone Biologics
+      
+
+RUN export DEFAULT_HOST_ADDRESS=127.0.0.1 
+RUN export DEFAULT_HOST_PORT=27017 
+RUN export DATABASE_USERNAME=root 
+RUN export DATABASE_PASSWORD=letmein2 
+RUN export DATABASE_DIALECT=org.hibernate.dialect.MySQL8Dialect 
+RUN export DATABASE_DRIVER=com.mysql.cj.jdbc.Driver 
+RUN export DATABASE_URL=jdbc:mysql://localhost:3306/strutsdemo?createDatabaseIfNotExist=true 
+
+# copy it all to gitRoot directory
+COPY . /gitRoot
+
+# ensure unix formatted
+RUN dos2unix /gitRoot/projectbuild.sh
+RUN dos2unix /gitRoot/terraform.sh
+
+# ensure executable
+RUN chmod 777 /gitRoot/projectbuild.sh
+RUN chmod 777 /gitRoot/terraform.sh
+

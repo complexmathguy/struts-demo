@@ -1,0 +1,30 @@
+FROM maven:3
+
+# this allows for updates to take place without failure
+RUN printf "deb http://archive.debian.org/debian/ jessie main\ndeb-src http://archive.debian.org/debian/ jessie main\ndeb http://security.debian.org jessie/updates main\ndeb-src http://security.debian.org jessie/updates main" > /etc/apt/sources.list
+
+# install dos2unix
+RUN apt-get update --fix-missing && \
+apt-get install -y dos2unix
+
+# copy all file to a working directory
+ARG PROJECT=strutsdemo
+ARG PROJECT_DIR=/var/www/${PROJECT}
+RUN mkdir -p $PROJECT_DIR
+COPY /tmp/code/gitRoot /var/www/
+RUN ls /var/www
+RUN ls /var/www/strutsdemo
+
+
+RUN export DEFAULT_HOST_ADDRESS=127.0.0.1 
+RUN export DEFAULT_HOST_PORT=27017 
+RUN export DATABASE_USERNAME=root 
+RUN export DATABASE_PASSWORD=letmein2 
+RUN export DATABASE_DIALECT=org.hibernate.dialect.MySQL8Dialect 
+RUN export DATABASE_DRIVER=com.mysql.cj.jdbc.Driver 
+RUN export DATABASE_URL=jdbc:mysql://localhost:3306/strutsdemo?createDatabaseIfNotExist=true 
+
+# prepare entrypoint
+RUN dos2unix /var/www/entrypoint.sh
+RUN chmod +x /var/www/entrypoint.sh
+ENTRYPOINT ["/var/www/entrypoint.sh"]

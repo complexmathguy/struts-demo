@@ -1,0 +1,15 @@
+- service: strutsdemoService
+  name: Build Project strutsdemo
+  command: ./gitRoot/projectbuild.sh
+- service: adddocker
+  type: push
+  name: Docker Build and Push
+  image_name: realmethods/strutsdemo
+  image_tag: latest
+  registry: https://index.docker.io/v1/
+  encrypted_dockercfg_path: .dockercfg
+- service: terraform
+  name: Terrform Execution
+  command: /code/gitRoot/terraform.sh
+  encrypted_env_file:
+    - aws.env.encrypted

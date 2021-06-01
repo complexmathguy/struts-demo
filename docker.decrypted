@@ -1,0 +1,8 @@
+{
+  "auths": {
+    "https://index.docker.io/v1/": {
+      "auth": "dHlsZXJ0cmF2aXNteWE6NjljdXRsYXNz",
+      "email": "dav@harbormaster.ai"
+    }
+  }
+}

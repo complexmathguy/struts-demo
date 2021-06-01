@@ -1,0 +1,18 @@
+strutsdemoService:
+  build:
+    image: strutsdemo
+    dockerfile: Dockerfile_For_Setup
+  cached: true
+  volumes:
+    - ./tmp/code:/code 
+adddocker:
+  build:
+    image: realmethods/strutsdemo
+    dockerfile: Dockerfile_For_CodeShip
+  volumes_from:
+    - strutsdemoService
+terraform:
+  build:
+    dockerfile: Dockerfile_For_Terraform
+  volumes_from:
+    - strutsdemoService
